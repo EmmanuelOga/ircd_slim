@@ -71,11 +71,7 @@ class IRCClient
 
   def receive_messages!
     @received_messages ||= []
-
-    receive.split("\r\n").map do |message|
-      @received_messages << IRCParser.parse("#{message}\r\n")
-    end
-
+    receive.split("\r\n").map { |message| @received_messages << IRCParser.parse("#{message}\r\n") }
     @received_messages
   end
 

@@ -45,14 +45,8 @@ module IRCDSlim
 
     def subscribe(client)
       unless member?(client)
-        subscriptions[client] = channel.subscribe(client) { |msg|
-          client.handle(msg) unless msg.black_listed?(client)
-        }
-
-        tx(client, :join) do |m|
-          m.prefix = client.prefix
-          m.channels = name
-        end
+        subscriptions[client] = channel.subscribe(client) { |msg| client.handle(msg) unless msg.black_listed?(client) }
+        tx(client, :join) { |m| m.prefix, m.channels = client.prefix, name }
       end
       self
     end

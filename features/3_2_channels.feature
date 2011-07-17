@@ -11,9 +11,12 @@ Feature: Channel Management
       | channels         | #SomeNewChannel |
     Then I should receive "JOIN" with:
       | channels         | #SomeNewChannel |
-      And I should receive "TOPIC" with:
-      | channel          | #SomeNewChannel |
-      | topic            | /\S/            |
+    And I should receive "rpl_topic" with:
+        | channel          | #SomeNewChannel |
+        | topic            | /\S/            |
+    # And I should receive "TOPIC" with:
+    #   | channel          | #SomeNewChannel |
+    #   | topic            | /\S/            |
       And I should receive "rpl_nam_reply" with:
       | channel          | #SomeNewChannel |
       | nicks_with_flags | Emmanuel        |
@@ -37,9 +40,10 @@ Feature: Channel Management
   Scenario: 3.2.2.1 Part message, removing users from channels
     Given Charles registered as user "Charles@127.0.0.1" with nick "Charles"
       And Charles JOINs "#SomeChannel"
-    When Charles sends "PART" with:
+    When Charles messages are checked from this point on
+      And Charles sends "PART" with:
         | channels  | #SomeChannel |
-    And Charles sends "WHO" with:
+      And Charles sends "WHO" with:
         | pattern   | #SomeChannel |
     Then Charles should not receive "rpl_who_reply" with:
         | user_nick | Charles      |

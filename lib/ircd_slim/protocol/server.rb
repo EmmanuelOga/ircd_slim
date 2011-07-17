@@ -12,8 +12,8 @@ module IRCDSlim
       end
 
       def unhandled_message(msg)
-        logger.error(ANSI.red { "  Unhandled Message #{msg.raw.identifier}" })
-        tx(msg.client, :err_unknown_command, msg.raw.identifier) if msg.client
+        logger.error(ANSI.red { "  Unhandled Message #{msg.identifier}" })
+        tx(msg.client, :err_unknown_command) { |m| m.command = msg.identifier } if msg.client
       end
 
       def tx(client, identifier, &block)
@@ -308,27 +308,23 @@ module IRCDSlim
 
       def on_who(msg)
         if msg.raw.for_channel?
-          chan = channels[msg.raw.pattern]
-          chan.clients.each { |client| reply_who(msg, client, chan) } if chan
+          channels[msg.raw.pattern].handle(msg) if channels.member?(msg.raw.pattern)
         else
           rx = msg.raw.regexp
           clients.select { |cli| cli.prefix =~ rx }.each do |client|
-            reply_who(msg, client, channels.joined_by(client).first)
+            chan ||= channels.joined_by(client).first
+            tx(msg.client, :rpl_who_reply) do |m|
+              #m.here!(true) # TODO really handle flags
+              m.channel   = chan.name
+              m.user      = client.nick #user
+              m.host      = client.host
+              m.server    = prefix
+              m.user_nick = client.nick
+              m.hopcount  = 1
+              m.realname  = "*"
+            end if chan
           end
-        end
-
-        tx(msg.client, :rpl_end_of_who) { |m| m.pattern = msg.raw.pattern }
-      end
-
-      def reply_who(msg, client, chan)
-        tx(msg.client, :rpl_who_reply) do |m|
-          #m.here!(true) # TODO really handle flags
-          m.nick      = chan.name if chan
-          m.channel   = chan.name
-          m.user      = client.user
-          m.host      = client.host
-          m.server    = prefix
-          m.user_nick = client.nick
+          tx(msg.client, :rpl_end_of_who) { |m| m.pattern = msg.raw.pattern }
         end
       end
 
@@ -380,6 +376,10 @@ module IRCDSlim
         tx(msg.client, :pong) do |m|
           m.server = prefix
         end
+      end
+
+      def on_names(msg)
+        msg.raw.channels.each { |chan_name| channels[chan_name].handle(msg) if channels.member?(chan_name) }
       end
 
     end
