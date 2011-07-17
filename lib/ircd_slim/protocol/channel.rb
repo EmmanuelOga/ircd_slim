@@ -4,6 +4,20 @@ module IRCDSlim
 
       def on_join(msg)
         subscribe(msg.client)
+
+        tx(msg.client, :rpl_nam_reply)    { |m| m.channel, m.nicks_with_flags = name, nicks.join(" ") }
+        tx(msg.client, :rpl_end_of_names) { |m| m.channel = name }
+        tx(msg.client, :topic)            { |m| m.channel, m.topic = name, topic }
+
+        # TODO add message 333 ? (topic date)
+
+        tx(msg.client, :mode) do |m|
+          m.prefix = server.prefix
+          m.target = name
+          m.user = "*" # who created the channel? Need to review the rfc.
+          m.positive_flags!
+          m.chan_speaker!
+        end
       end
 
       def on_part(msg)

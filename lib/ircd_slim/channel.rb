@@ -80,7 +80,7 @@ module IRCDSlim
 
     def watch(options = {}, &callback)
       filter = Filter.new(options)
-      watcher.subscribe{ |msg| callback.call(msg) if filter.allow?(msg) }
+      watcher.subscribe { |msg| callback.call(msg) if filter.allow?(msg) }
     end
 
     def unwatch(sid)

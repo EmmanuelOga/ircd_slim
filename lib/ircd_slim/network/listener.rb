@@ -3,46 +3,48 @@ module IRCDSlim
     class Listener
       attr_reader :connections, :server, :port, :ip, :connections
 
-      def logger
-        server.logger
-      end
-
-      def initialize(server, port = 10000, ip = '0.0.0.0')
-        @server, @port, @ip, @connections = server, port, ip, []
-      end
-
-      def start
-        @signature = EventMachine.start_server(ip, port, IRCDSlim::Network::Connection, &method(:configure))
-      end
-
-      def stop(&callback)
-        EventMachine.stop_server(@signature)
-
-        unless wait_for_connections_and_stop(&callback)
-          EventMachine.add_periodic_timer(0.5) { wait_for_connections_and_stop(&callback) }
+      module Base
+        def logger
+          server.logger
         end
-      end
 
-      def unbind(connection)
-        connections.delete(connection)
-      end
-
-      def configure(conn)
-        conn.configure(server, self); connections.push(conn)
-      end
-      private :configure
-
-      def wait_for_connections_and_stop(&callback)
-        if connections.empty?
-          callback.call(self)
-          true
-        else
-          logger.info("Still #{connections.length} connection/s to shutdown.")
-          connections.each { |conn| conn.close_connection_after_writing }
-          false
+        def initialize(server, port = 10000, ip = '0.0.0.0')
+          @server, @port, @ip, @connections = server, port, ip, []
         end
+
+        def start
+          @signature = EventMachine.start_server(ip, port, IRCDSlim::Network::Connection, &method(:configure))
+        end
+
+        def stop(&callback)
+          EventMachine.stop_server(@signature)
+
+          unless wait_for_connections_and_stop(&callback)
+            EventMachine.add_periodic_timer(0.5) { wait_for_connections_and_stop(&callback) }
+          end
+        end
+
+        def unbind(connection)
+          connections.delete(connection)
+        end
+
+        def configure(conn)
+          conn.configure(server, self); connections.push(conn)
+        end
+        private :configure
+
+        def wait_for_connections_and_stop(&callback)
+          if connections.empty?
+            callback.call(self)
+            true
+          else
+            logger.info("Still #{connections.length} connection/s to shutdown.")
+            connections.each { |conn| conn.close_connection_after_writing }
+            false
+          end
+        end
+        private :wait_for_connections_and_stop
       end
-      private :wait_for_connections_and_stop
 
       module Logging
         def start
@@ -75,6 +77,7 @@ module IRCDSlim
         end
       end
 
+      include Base
       include Logging
     end
   end

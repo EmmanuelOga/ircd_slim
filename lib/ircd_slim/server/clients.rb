@@ -6,6 +6,10 @@ module IRCDSlim
         @server, @clients = server, []
       end
 
+      def nicks
+        @clients.map(&:nick)
+      end
+
       def with_nick(nick)
         @clients.detect { |client| client.nick == nick }
       end

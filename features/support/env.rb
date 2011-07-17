@@ -20,8 +20,7 @@ module Helpers
 
   def parse_value(val)
     case val
-    when nil
-      nil
+    when nil then nil
     when /\$(.*)$/ then $VARS[$1]
     when /^\/(.*)\/$/ then /#{$1}/
     else

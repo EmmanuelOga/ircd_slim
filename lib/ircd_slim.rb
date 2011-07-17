@@ -2,6 +2,7 @@
 # $LOAD_PATH.unshift File.expand_path(File.join(File.dirname(__FILE__), "../../irc_parser/lib"))
 
 require 'irc_parser'
+
 require 'logger'
 require 'socket'
 require 'forwardable'

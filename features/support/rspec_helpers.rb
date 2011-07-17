@@ -2,11 +2,9 @@ RSpec::Matchers.define :include_message_with do |attributes|
 
   match do |messages|
     result = Array(messages).detect do |msg|
-
       attributes.all? do |attr, expected|
         Array(msg.send(attr)).detect { |returned| expected === returned }
       end
-
     end
   end
 

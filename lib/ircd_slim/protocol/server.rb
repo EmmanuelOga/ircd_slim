@@ -227,36 +227,7 @@ module IRCDSlim
         # elsif ... tx(msg.client, :err_too_many_channels)
 
         else
-          msg.raw.channels.each { |chan_name| join(msg, chan_name) }
-        end
-      end
-
-      def join(msg, chan_name)
-        chan = channels[chan_name]
-
-        chan.handle(msg)
-
-        tx(msg.client, :rpl_nam_reply) do |m|
-          m.channel = chan.name
-          m.nicks_with_flags = chan.nicks.join(" ")
-        end
-
-        tx(msg.client, :rpl_end_of_names) do |m|
-          m.channel = chan.name
-        end
-
-        tx(msg.client, :topic) do |m|
-          m.channel = chan.name
-          m.topic = chan.topic
-        end
-
-        # TODO add message 333 ? (topic date)
-
-        tx(msg.client, :mode) do |m|
-          m.target = chan.name
-          m.user = "*" # who created the channel? Need to review the rfc.
-          m.positive_flags!
-          m.chan_speaker!
+          msg.raw.channels.each { |chan_name| channels[chan_name].handle(msg) }
         end
       end
 
@@ -284,7 +255,7 @@ module IRCDSlim
       end
 
       def on_list(msg)
-        # server_tx(:err_no_such_server)
+        # server_tx(msg.client, :err_no_such_server)
 
         tx(msg.client, :rpl_list_start)
 
@@ -300,39 +271,37 @@ module IRCDSlim
       end
 
       def on_priv_msg(msg)
-        # server_tx(:err_cannot_send_to_chan)
-        # server_tx(:err_no_top_level)
-        # server_tx(:err_wild_top_level)
-        # server_tx(:err_too_many_targets)
-        # server_tx(:rpl_away)
+        # server_tx(msg.client, :err_cannot_send_to_chan)
+        # server_tx(msg.client, :err_no_top_level)
+        # server_tx(msg.client, :err_wild_top_level)
+        # server_tx(msg.client, :err_too_many_targets)
+        # server_tx(msg.client, :rpl_away)
 
         if msg.raw.target.blank?
-          tx(:err_no_recipient)
+          tx(msg.client, :err_no_recipient)
 
         elsif msg.raw.body.blank?
-          tx(:err_no_text_to_send)
+          tx(msg.client, :err_no_text_to_send)
+
+        elsif msg.raw.for_channel?
+
+          if chan = channels[msg.raw.target]
+            chan.handle(msg)
+          else
+            tx(msg.client, :err_no_such_channel)
+          end
+
+        elsif msg.raw.for_user?
+
+          if target = clients.with_nick(msg.raw.target)
+            msg.raw.prefix = msg.client.prefix
+            target.handle(msg)
+          else
+            tx(msg.client, :err_no_such_nick)
+          end
 
         else
-          if msg.raw.for_channel?
-
-            if chan = channels[msg.raw.target]
-              chan.handle(msg)
-            else
-              tx(:err_no_such_channel)
-            end
-
-          elsif msg.raw.for_user?
-
-            if target = clients.with_nick(msg.raw.target)
-              msg.raw.prefix = msg.client.prefix
-              target.handle(msg)
-            else
-              tx(:err_no_such_nick)
-            end
-
-          else
-            tx(:err_no_recipient) # TODO handle host/server patterns
-          end
+          tx(msg.client, :err_no_recipient) # TODO handle host/server patterns
         end
       end
       alias_method :on_notice, :on_priv_msg
