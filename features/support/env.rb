@@ -1,16 +1,13 @@
+$LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__)))
+
 require 'ircd_slim'
 require 'forwardable'
+require 'basic_server'
 
 module Helpers
   def self.run_ircd
-    pid = fork do
-      require 'ircd_slim/support/basic_server'
-    end
-
-    at_exit do
-      Process.kill("INT", pid)
-    end
-
+    pid = fork { BasicServer.start }
+    at_exit { Process.kill("INT", pid) }
     sleep 1
   end
 
@@ -36,8 +33,6 @@ $hostname = `hostname`.chomp
 
 $VARS = Hash.new { |h, k| h[k] = eval(k) }
 $VARS["server_host"] = $hostname
-
-$LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__)))
 
 $run_ircd_process = true
 
