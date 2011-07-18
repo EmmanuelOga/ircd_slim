@@ -9,7 +9,10 @@ module IRCDSlim
 #:rpl_end_of_who        >> :sendak.freenode.net 315 emmanuel #pipita2 :End of /WHO list.
 
       def on_join(msg)
-        subscribe(msg.client); on_who(msg); on_names(msg); on_topic(msg)
+        subscribe(msg.client)
+        on_who(msg)
+        on_names(msg)
+        on_topic(msg)
         # TODO add message 333 ? (topic date)
         tx(msg.client, :mode) do |m|
           m.prefix = server.prefix
@@ -30,7 +33,7 @@ module IRCDSlim
             m.server    = server.prefix
             m.user_nick = client.nick
             m.hopcount  = 1
-            m.realname  = "*"
+            m.realname  = client.realname
           end
         end
 
