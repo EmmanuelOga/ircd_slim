@@ -58,9 +58,7 @@ module IRCDSlim
       end
 
       def on_priv_msg(msg)
-        unless member?(msg)
-          subscribe(msg.client); on_names(msg); on_who(msg)
-        end
+        # subscribe(msg.client) unless member?(msg)
         msg.raw.prefix = msg.client.prefix
         msg.black_list(msg.client)
         push(msg)
