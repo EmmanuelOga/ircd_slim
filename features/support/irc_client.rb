@@ -38,13 +38,13 @@ class IRCClient
     send_data(IRCParser.message(msg, &block))
   end
 
-  RETRIES_LIMIT = 2
+  RETRIES_LIMIT = 10
 
   def receive
     result, retries = "", 1
 
     loop do
-      readable = IO.select([@socket], nil, nil, 0.01)
+      readable = IO.select([@socket], nil, nil, 0.1)
 
       if readable && readable.first
         line = @socket.gets

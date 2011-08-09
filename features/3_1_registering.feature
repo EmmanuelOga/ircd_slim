@@ -81,7 +81,7 @@ Feature: Registering
         | quit_message | Gone for lunch |
         | prefix       | my_nick!emmanuel@127.0.0.1 |
 
-  Scenario: 3.1.7 Quit when I connected to a few channels
+  Scenario: 3.1.7 Quit when I'm connected to a few channels
     Given fred registered as user "fred@127.0.0.1" with nick "fred"
       And wilma registered as user "wilma@127.0.0.1" with nick "wilma"
       And I registered as user "Emmanuel@127.0.0.1" with nick "Emmanuel"

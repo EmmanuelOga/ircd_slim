@@ -40,5 +40,5 @@ Then /^(\w+) should\s*(not)? receive "([^"]*)" with:$/ do |who, no, name, table|
 end
 
 Then /^(\w+) should receive messages "([^"]*)" through "([^"]*)"$/ do |who, start, finish|
-  clients[who].received_messages(nil, true).map { |msg| msg.class.identifier }.should include(*(start..finish).to_a)
+  clients[who].received_messages(nil, true).map { |msg| msg.class.identifier.to_s }.should include(*(start..finish).to_a)
 end

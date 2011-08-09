@@ -75,17 +75,15 @@ module IRCDSlim
         return unless should_welcome?(client)
 
         tx(client, :rpl_welcome) do |m|
-          m.welcome = "Welcome to IRCDSlim@#{prefix}"
-          m.user = client.prefix
+          m.format_postfix :welcome => "Welcome to IRCDSlim@#{prefix}", :user => client.prefix
         end
 
         tx(client, :rpl_your_host) do |m|
-          m.server_name = "IRCDSlim"
-          m.version = IRCDSlim::VERSION
+          m.format_postfix :server_name => "IRCDSlim", :version => IRCDSlim::VERSION
         end
 
         tx(client, :rpl_created) do |m|
-          m.date = date
+          m.format_postfix :date => date
         end
 
         tx(client, :rpl_my_info) do |m|
@@ -96,9 +94,8 @@ module IRCDSlim
         end
 
         tx(client, :rpl_l_user_client) do |m|
-          m.users_count = clients.length
-          m.invisible_count = 0 # TODO Modes
-          m.servers = 1
+          # TODO MODES
+          m.format_postfix :users_count => clients.length, :invisible_count => 0, :servers => 1
         end
 
         tx(client, :rpl_l_user_op) do |m|
@@ -114,8 +111,7 @@ module IRCDSlim
         end
 
         tx(client, :rpl_l_user_me) do |m|
-          m.clients_count = clients.length
-          m.servers_count = 0
+          m.format_postfix :clients_count => clients.length, :servers_count => 0
         end
 
         client.data[:already_welcomed] = true
@@ -320,8 +316,7 @@ module IRCDSlim
               m.host      = client.host
               m.server    = prefix
               m.user_nick = client.nick
-              m.hopcount  = 1
-              m.realname  = "*"
+              m.format_postfix :hopcount => 1, :realname => "*"
             end if chan
           end
           tx(msg.client, :rpl_end_of_who) { |m| m.pattern = msg.raw.pattern }

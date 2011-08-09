@@ -27,13 +27,13 @@ module IRCDSlim
         clients.each do |client|
           tx(msg.client, :rpl_who_reply) do |m|
             #m.here!(true) # TODO really handle flags
+            m.nick      = msg.client.nick
             m.channel   = name
             m.user      = client.nick #user
             m.host      = client.host
             m.server    = server.prefix
             m.user_nick = client.nick
-            m.hopcount  = 1
-            m.realname  = client.realname
+            m.format_postfix :hopcount => 1, :realname => "*"
           end
         end
 
@@ -41,8 +41,8 @@ module IRCDSlim
       end
 
       def on_names(msg)
-        tx(msg.client, :rpl_nam_reply)    { |m| m.channel, m.nicks_with_flags = name, nicks.join(" ") }
-        tx(msg.client, :rpl_end_of_names) { |m| m.channel = name }
+        tx(msg.client, :rpl_nam_reply)    { |m| m.nick, m.channel, m.nicks_with_flags = msg.client.nick, name, nicks.join(" ") }
+        tx(msg.client, :rpl_end_of_names) { |m| m.nick, m.channel = msg.client.nick, name }
       end
 
       def on_part(msg)
@@ -78,7 +78,7 @@ module IRCDSlim
 
       def reply_topic(msg)
         if topic.present?
-          msg.client.tx(:rpl_topic) { |m| m.channel, m.topic = name, topic }
+          msg.client.tx(:rpl_topic) { |m| m.nick, m.channel, m.topic = msg.client.nick, name, topic }
         else
           tx(:rpl_no_topic) { |m| m.channel = channel }
         end

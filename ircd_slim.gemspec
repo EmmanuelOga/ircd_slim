@@ -26,7 +26,9 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.extra_rdoc_files = %w[README LICENSE]
 
-  s.add_dependency('irc_parser')
+  s.add_dependency('irc_parser', [">= 0.1.2"])
+  s.add_dependency('eventmachine')
+  s.add_dependency('ansi')
   s.add_development_dependency('rspec', ["~> 2.0.0"])
 
   # = MANIFEST =
